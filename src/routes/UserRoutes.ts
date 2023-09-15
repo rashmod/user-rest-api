@@ -6,14 +6,15 @@ import {
 	getUser,
 	updateUser,
 } from '../controllers/UserControllers';
+import catchAsyncError from '../utilities/catchAsyncError';
 
 const router = express.Router();
 
-router.get('/', getAllUsers);
-router.post('/', createUser);
+router.get('/', catchAsyncError(getAllUsers));
+router.post('/', catchAsyncError(createUser));
 
-router.get('/:id', getUser);
-router.put('/:id', updateUser);
-router.delete('/:id', deleteUser);
+router.get('/:id', catchAsyncError(getUser));
+router.put('/:id', catchAsyncError(updateUser));
+router.delete('/:id', catchAsyncError(deleteUser));
 
 export default router;

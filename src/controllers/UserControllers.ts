@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../db/prisma';
+import { NotFoundError } from '../utilities/Errors';
 
 // @desc Get all users
 // @route GET /api/users
@@ -34,6 +35,10 @@ export const getUser = async (req: Request, res: Response) => {
 
 	const user = await prisma.user.findUnique({ where: { userId: id } });
 
+	if (!user) {
+		throw new NotFoundError('The requested user was not found');
+	}
+
 	res.status(200).json({ success: true, data: user });
 };
 
@@ -46,14 +51,19 @@ export const updateUser = async (req: Request, res: Response) => {
 	const { id } = req.params;
 	const { username, email, displayName } = req.body;
 
+	const user = await prisma.user.findUnique({ where: { userId: id } });
+
+	if (!user) {
+		throw new NotFoundError('The requested user was not found');
+	}
 	// todo perform validation
 	// todo check for unique emails
-	const user = await prisma.user.update({
+	const updateUser = await prisma.user.update({
 		where: { userId: id },
 		data: { username, email, displayName },
 	});
 
-	res.status(200).json({ success: true, data: user });
+	res.status(200).json({ success: true, data: updateUser });
 };
 
 // @desc Delete single user
@@ -62,7 +72,13 @@ export const updateUser = async (req: Request, res: Response) => {
 export const deleteUser = async (req: Request, res: Response) => {
 	const { id } = req.params;
 
-	const user = await prisma.user.delete({ where: { userId: id } });
+	const user = await prisma.user.findUnique({ where: { userId: id } });
 
-	res.status(200).json({ success: true, data: user });
+	if (!user) {
+		throw new NotFoundError('The requested user was not found');
+	}
+
+	const deletedUser = await prisma.user.delete({ where: { userId: id } });
+
+	res.status(200).json({ success: true, data: deletedUser });
 };

@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import { prisma } from '../db/prisma';
-import { NotFoundError } from '../utilities/Errors';
+import {
+	CustomError,
+	DuplicateEmailError,
+	NotFoundError,
+} from '../utilities/Errors';
 
 // @desc Get all users
 // @route GET /api/users
@@ -19,7 +23,13 @@ export const createUser = async (req: Request, res: Response) => {
 
 	// todo perform validation
 	// todo hash password before saving to database
-	// todo check for unique emails
+
+	const emailExists = await prisma.user.findUnique({ where: { email } });
+
+	if (emailExists) {
+		throw new DuplicateEmailError();
+	}
+
 	const user = await prisma.user.create({
 		data: { username, email, displayName, hashedPassword: password },
 	});
@@ -56,8 +66,15 @@ export const updateUser = async (req: Request, res: Response) => {
 	if (!user) {
 		throw new NotFoundError('The requested user was not found');
 	}
+
+	const emailExists = await prisma.user.findUnique({ where: { email } });
+	const isEmailOwner = emailExists && emailExists.userId === id;
+
+	if (!isEmailOwner) {
+		throw new DuplicateEmailError();
+	}
+
 	// todo perform validation
-	// todo check for unique emails
 	const updateUser = await prisma.user.update({
 		where: { userId: id },
 		data: { username, email, displayName },

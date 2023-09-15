@@ -18,3 +18,10 @@ export class NotFoundError extends CustomError {
 		super(message, 404, 'NotFoundError');
 	}
 }
+export class DuplicateEmailError extends CustomError {
+	constructor(
+		message = 'A user with this email already exists. Please choose different email address.'
+	) {
+		super(message, 409, 'DuplicateEmailError');
+	}
+}

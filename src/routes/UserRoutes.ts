@@ -13,6 +13,7 @@ import {
 	changePasswordValidation,
 	passwordValidation,
 } from '../validation/passwordValidation';
+import isLoggedIn from '../middlewares/isLoggedIn';
 
 const router = express.Router();
 
@@ -25,11 +26,12 @@ router.post(
 );
 
 router.get('/:id', catchAsyncError(getUser));
-router.put('/:id', userValidation, catchAsyncError(updateUser));
-router.delete('/:id', catchAsyncError(deleteUser));
+router.put('/:id', isLoggedIn, userValidation, catchAsyncError(updateUser));
+router.delete('/:id', isLoggedIn, catchAsyncError(deleteUser));
 
 router.patch(
 	'/:id/changePassword',
+	isLoggedIn,
 	changePasswordValidation,
 	catchAsyncError(updatePassword)
 );

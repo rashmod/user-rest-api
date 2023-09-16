@@ -36,3 +36,11 @@ export class ValidationError extends CustomError {
 		this.errors = err;
 	}
 }
+
+export class ConflictError extends CustomError {
+	constructor(
+		message = 'The resource has been modified since your last request. Please refresh the resource and try again.'
+	) {
+		super(message, 409, 'ConflictError');
+	}
+}

@@ -1,6 +1,6 @@
 import { body } from 'express-validator';
 
-const userValidation = [
+export const userValidation = [
 	body('username')
 		.trim()
 		.notEmpty()
@@ -24,4 +24,12 @@ const userValidation = [
 		.withMessage('Please enter a valid email'),
 ];
 
-export default userValidation;
+export const updatedAtValidation = body('updatedAt')
+	.trim()
+	.notEmpty()
+	.escape()
+	.withMessage('Updated At is required')
+	.isISO8601()
+	.withMessage(
+		'Timestamp must be in ISO 8601 format (e.g. 2023-09-16T05:55:11.037Z)'
+	);

@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator';
 
 import { prisma } from '../db/prisma';
 import {
+	ConflictError,
 	CustomError,
 	DuplicateEmailError,
 	NotFoundError,
@@ -60,14 +61,12 @@ export const createUser = async (req: Request, res: Response) => {
 	res.status(200).json({ success: true, data: user });
 };
 
-// todo add route to change password
-
 // @desc Update single user
 // @route PUT /api/users/:id
 // @access private
 export const updateUser = async (req: Request, res: Response) => {
 	const { id } = req.params;
-	const { username, email, displayName } = req.body;
+	const { username, email, displayName, updatedAt } = req.body;
 
 	const result = validationResult(req);
 	if (!result.isEmpty()) {
@@ -85,6 +84,12 @@ export const updateUser = async (req: Request, res: Response) => {
 
 	if (!isEmailOwner) {
 		throw new DuplicateEmailError();
+	}
+
+	const isUpdateConflict = user.updatedAt.toISOString() !== updatedAt;
+
+	if (isUpdateConflict) {
+		throw new ConflictError();
 	}
 
 	const updateUser = await prisma.user.update({
@@ -117,7 +122,7 @@ export const deleteUser = async (req: Request, res: Response) => {
 // @access private
 export const updatePassword = async (req: Request, res: Response) => {
 	const { id } = req.params;
-	const { oldPassword, newPassword } = req.body;
+	const { oldPassword, newPassword, updatedAt } = req.body;
 
 	const result = validationResult(req);
 	if (!result.isEmpty()) {
@@ -151,6 +156,12 @@ export const updatePassword = async (req: Request, res: Response) => {
 			400,
 			'PasswordUnchanged'
 		);
+	}
+
+	const isUpdateConflict = user.updatedAt.toISOString() !== updatedAt;
+
+	if (isUpdateConflict) {
+		throw new ConflictError();
 	}
 
 	const hashedPassword = await hashPassword(newPassword);

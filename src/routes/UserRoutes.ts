@@ -8,7 +8,10 @@ import {
 	updateUser,
 } from '../controllers/UserControllers';
 import catchAsyncError from '../utilities/catchAsyncError';
-import userValidation from '../validation/userValidation';
+import {
+	updatedAtValidation,
+	userValidation,
+} from '../validation/userValidation';
 import {
 	changePasswordValidation,
 	passwordValidation,
@@ -26,13 +29,20 @@ router.post(
 );
 
 router.get('/:id', catchAsyncError(getUser));
-router.put('/:id', isLoggedIn, userValidation, catchAsyncError(updateUser));
+router.put(
+	'/:id',
+	isLoggedIn,
+	userValidation,
+	updatedAtValidation,
+	catchAsyncError(updateUser)
+);
 router.delete('/:id', isLoggedIn, catchAsyncError(deleteUser));
 
 router.patch(
 	'/:id/changePassword',
 	isLoggedIn,
 	changePasswordValidation,
+	updatedAtValidation,
 	catchAsyncError(updatePassword)
 );
 

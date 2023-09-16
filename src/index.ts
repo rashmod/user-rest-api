@@ -1,18 +1,23 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import session from 'express-session';
+import expressSession from 'express-session';
+import cron from 'node-cron';
 
 import connectDB from './db/prisma';
 import UserRoutes from './routes/UserRoutes';
 import AuthRoutes from './routes/AuthRoutes';
 import errorHandler from './middlewares/errorHandler';
+import {
+	rateLimitAPI,
+	requestCounts,
+	windowMs,
+} from './middlewares/rateLimitAPI';
 
 // todo rate limit
-// todo conflict update
 
 declare module 'express-session' {
 	interface SessionData {
-		user: any; // Modify 'any' to match your actual user data structure
+		user: any;
 	}
 }
 
@@ -28,7 +33,7 @@ if (process.env.NODE_ENV === 'PRODUCTION') {
 	app.set('trust proxy', 1);
 
 	app.use(
-		session({
+		expressSession({
 			secret: process.env.COOKIE_SECRET,
 			resave: true,
 			saveUninitialized: true,
@@ -43,7 +48,7 @@ if (process.env.NODE_ENV === 'PRODUCTION') {
 
 if (process.env.NODE_ENV === 'DEVELOPMENT') {
 	app.use(
-		session({
+		expressSession({
 			secret: process.env.COOKIE_SECRET,
 			resave: true,
 			saveUninitialized: true,
@@ -52,6 +57,7 @@ if (process.env.NODE_ENV === 'DEVELOPMENT') {
 }
 
 app.use(express.json());
+app.use(rateLimitAPI);
 
 app.use('/api/users', UserRoutes);
 app.use('/api/auth', AuthRoutes);
@@ -59,6 +65,17 @@ app.use('/api/auth', AuthRoutes);
 app.use(errorHandler);
 
 connectDB();
+
+// run the job at the start of every hour
+cron.schedule('0 * * * *', () => {
+	const currentTimestamp = Date.now();
+
+	requestCounts.forEach((value, key) => {
+		if (currentTimestamp - value.timestamp > windowMs) {
+			requestCounts.delete(key);
+		}
+	});
+});
 
 app.listen(process.env.PORT, () => {
 	console.log(

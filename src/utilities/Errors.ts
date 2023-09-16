@@ -1,4 +1,7 @@
+import { ValidationError as typeValidationError } from 'express-validator';
+
 export type TCustomError = { statusCode: number; errorName: string } & Error;
+export type TValidationError = { errors: typeValidationError[] } & TCustomError;
 
 export class CustomError extends Error {
 	statusCode: number;
@@ -23,5 +26,13 @@ export class DuplicateEmailError extends CustomError {
 		message = 'A user with this email already exists. Please choose different email address.'
 	) {
 		super(message, 409, 'DuplicateEmailError');
+	}
+}
+
+export class ValidationError extends CustomError {
+	errors: typeValidationError[];
+	constructor(message = 'Validation Failed', err: typeValidationError[]) {
+		super(message, 400, 'ValidationError');
+		this.errors = err;
 	}
 }

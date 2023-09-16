@@ -7,14 +7,21 @@ import {
 	updateUser,
 } from '../controllers/UserControllers';
 import catchAsyncError from '../utilities/catchAsyncError';
+import userValidation from '../validation/userValidation';
+import { passwordValidation } from '../validation/passwordValidation';
 
 const router = express.Router();
 
 router.get('/', catchAsyncError(getAllUsers));
-router.post('/', catchAsyncError(createUser));
+router.post(
+	'/',
+	userValidation,
+	passwordValidation,
+	catchAsyncError(createUser)
+);
 
 router.get('/:id', catchAsyncError(getUser));
-router.put('/:id', catchAsyncError(updateUser));
+router.put('/:id', userValidation, catchAsyncError(updateUser));
 router.delete('/:id', catchAsyncError(deleteUser));
 
 export default router;

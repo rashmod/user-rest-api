@@ -1,9 +1,12 @@
 import { Request, Response } from 'express';
+import { validationResult } from 'express-validator';
+
 import { prisma } from '../db/prisma';
 import {
 	CustomError,
 	DuplicateEmailError,
 	NotFoundError,
+	ValidationError,
 } from '../utilities/Errors';
 
 // @desc Get all users
@@ -21,7 +24,11 @@ export const getAllUsers = async (req: Request, res: Response) => {
 export const createUser = async (req: Request, res: Response) => {
 	const { username, email, password, displayName } = req.body;
 
-	// todo perform validation
+	const result = validationResult(req);
+	if (!result.isEmpty()) {
+		throw new ValidationError('Validation failed', result.array());
+	}
+
 	// todo hash password before saving to database
 
 	const emailExists = await prisma.user.findUnique({ where: { email } });
@@ -61,6 +68,11 @@ export const updateUser = async (req: Request, res: Response) => {
 	const { id } = req.params;
 	const { username, email, displayName } = req.body;
 
+	const result = validationResult(req);
+	if (!result.isEmpty()) {
+		throw new ValidationError('Validation failed', result.array());
+	}
+
 	const user = await prisma.user.findUnique({ where: { userId: id } });
 
 	if (!user) {
@@ -74,7 +86,6 @@ export const updateUser = async (req: Request, res: Response) => {
 		throw new DuplicateEmailError();
 	}
 
-	// todo perform validation
 	const updateUser = await prisma.user.update({
 		where: { userId: id },
 		data: { username, email, displayName },

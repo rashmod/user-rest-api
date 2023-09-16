@@ -17,7 +17,7 @@ export default function errorHandler(
 	} else if (err instanceof CustomError) {
 		return handleCustomError(err, res);
 	} else {
-		return handleUnexpectedError(res);
+		return handleUnexpectedError(err, res);
 	}
 }
 
@@ -38,7 +38,8 @@ function handleValidationError(err: TValidationError, res: Response) {
 	});
 }
 
-function handleUnexpectedError(res: Response) {
+function handleUnexpectedError(err: any, res: Response) {
+	console.log(err);
 	res.status(500).json({
 		success: false,
 		error: 'ServerError',

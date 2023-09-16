@@ -3,11 +3,11 @@ import { validationResult } from 'express-validator';
 
 import { prisma } from '../db/prisma';
 import {
-	CustomError,
 	DuplicateEmailError,
 	NotFoundError,
 	ValidationError,
 } from '../utilities/Errors';
+import { hashPassword } from '../utilities/passwordUtils';
 
 // @desc Get all users
 // @route GET /api/users
@@ -29,16 +29,16 @@ export const createUser = async (req: Request, res: Response) => {
 		throw new ValidationError('Validation failed', result.array());
 	}
 
-	// todo hash password before saving to database
-
 	const emailExists = await prisma.user.findUnique({ where: { email } });
 
 	if (emailExists) {
 		throw new DuplicateEmailError();
 	}
 
+	const hashedPassword = await hashPassword(password);
+
 	const user = await prisma.user.create({
-		data: { username, email, displayName, hashedPassword: password },
+		data: { username, email, displayName, hashedPassword },
 	});
 
 	res.status(200).json({ success: true, data: user });

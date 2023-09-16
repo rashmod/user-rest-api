@@ -13,8 +13,6 @@ import {
 	windowMs,
 } from './middlewares/rateLimitAPI';
 
-// todo rate limit
-
 declare module 'express-session' {
 	interface SessionData {
 		user: any;
